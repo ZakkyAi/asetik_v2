@@ -95,27 +95,60 @@ if (!$hostIPv4) {
     if (preg_match('/^db\.([a-z0-9]+)\.supabase\.co$/', $host, $matches)) {
         $projectId = $matches[1];
         
-        // Try common pooler regions (starting with Singapore as it matches the IPv6 range seen)
+        // Try common pooler regions
         $poolerRegions = [
             'aws-0-ap-southeast-1.pooler.supabase.com', // Singapore
             'aws-0-us-east-1.pooler.supabase.com',      // N. Virginia
             'aws-0-eu-central-1.pooler.supabase.com',   // Frankfurt
-            'aws-0-us-west-1.pooler.supabase.com'       // N. California
+            'aws-0-us-west-1.pooler.supabase.com',      // N. California
+            'aws-0-sa-east-1.pooler.supabase.com',      // São Paulo
+            'aws-0-ap-northeast-1.pooler.supabase.com', // Tokyo
+            'aws-0-ap-northeast-2.pooler.supabase.com', // Seoul
+            'aws-0-ca-central-1.pooler.supabase.com',   // Canada
+            'aws-0-ap-south-1.pooler.supabase.com',     // Mumbai
+            'aws-0-eu-west-1.pooler.supabase.com',      // Ireland
+            'aws-0-eu-west-2.pooler.supabase.com',      // London
+            'aws-0-eu-west-3.pooler.supabase.com',      // Paris
         ];
         
         foreach ($poolerRegions as $poolerHost) {
             $poolerIP = getIPv4($poolerHost);
             if ($poolerIP) {
-                $hostIPv4 = $poolerIP; // Use the pooler's IPv4
+                // We found an IP for this region, but is it the RIGHT region?
+                // We must test the connection to see if the Tenant exists there.
                 
-                // Fix username for pooler (must be user.project)
-                if (strpos($user, '.') === false) {
-                    $user = "$user.$projectId";
+                $testUser = (strpos($user, '.') === false) ? "$user.$projectId" : $user;
+                $testDsn = "pgsql:host=$poolerIP;port=5432;dbname=$db;sslmode=require";
+                
+                try {
+                    // specific test connection with short timeout
+                    $testPdo = new PDO($testDsn, $testUser, $pass, [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_TIMEOUT => 2
+                    ]);
+                    
+                    // If we got here, it worked!
+                    $hostIPv4 = $poolerIP;
+                    $user = $testUser;
+                    break;
+                } catch (PDOException $e) {
+                    // Check if error is "Tenant or user not found" (SQLSTATE 08006 or similar with specific message)
+                    // or "password authentication failed" (which means we found the tenant but pass is wrong)
+                    
+                    $msg = $e->getMessage();
+                    
+                    // If "Tenant or user not found", this is the WRONG region. Continue loop.
+                    if (strpos($msg, 'Tenant or user not found') !== false) {
+                        continue;
+                    }
+                    
+                    // If "password authentication failed", this IS the right region, just wrong pass.
+                    // Or if any other error (like network), we might as well try to use this one or fail.
+                    // For now, if it's NOT "Tenant not found", we assume this is the right region (or closest we can get).
+                    $hostIPv4 = $poolerIP;
+                    $user = $testUser;
+                    break;
                 }
-                
-                // Use port 5432 (Session mode) or 6543 (Transaction mode)
-                // Keep 5432 for compatibility
-                break; 
             }
         }
     }

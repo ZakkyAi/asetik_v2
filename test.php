@@ -29,7 +29,11 @@ echo "<p>User: $user</p>";
 echo "<p>Port: $port</p>";
 
 try {
-    $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
+    // Force IPv4 resolution
+    $hostIPv4 = gethostbyname($host);
+    echo "<p>Resolved Host (IPv4): $hostIPv4</p>";
+    
+    $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";
     
     echo "<p>Attempting connection...</p>";
     

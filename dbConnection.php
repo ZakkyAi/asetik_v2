@@ -28,7 +28,9 @@ if (empty($pass) && file_exists(__DIR__ . '/.env')) {
     }
 }
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
+// Force IPv4 resolution to avoid IPv6 connection issues on Railway
+$hostIPv4 = gethostbyname($host);
+$dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

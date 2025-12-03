@@ -1,25 +1,31 @@
 <?php
-// Database connection for Railway deployment
-// Uses environment variables directly without dotenv
+/**
+ * Railway-optimized database connection
+ * Works with Railway environment variables WITHOUT dotenv
+ */
 
-// Get environment variables directly
-$host = getenv('DB_HOST') ?: 'localhost';
-$db   = getenv('DB_NAME') ?: 'postgres';
-$user = getenv('DB_USER') ?: 'postgres';
-$pass = getenv('DB_PASSWORD') ?: '';
-$port = getenv('DB_PORT') ?: '5432';
+// Get environment variables from Railway (or system)
+$host = $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? 'localhost';
+$db   = $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? 'postgres';
+$user = $_SERVER['DB_USER'] ?? getenv('DB_USER') ?? 'postgres';  
+$pass = $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? '';
+$port = $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?? '5432';
 
-// Fallback to .env file for local development only
-if (file_exists(__DIR__ . '/.env') && empty($pass)) {
-    require_once __DIR__ . '/vendor/autoload.php';
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->safeLoad();
-    
-    $host = getenv('DB_HOST') ?: $_ENV['DB_HOST'] ?? $host;
-    $db   = getenv('DB_NAME') ?: $_ENV['DB_NAME'] ?? $db;
-    $user = getenv('DB_USER') ?: $_ENV['DB_USER'] ?? $user;
-    $pass = getenv('DB_PASSWORD') ?: $_ENV['DB_PASSWORD'] ?? $pass;
-    $port = getenv('DB_PORT') ?: $_ENV['DB_PORT'] ?? $port;
+// For local development with .env file
+if (empty($pass) && file_exists(__DIR__ . '/.env')) {
+    $envFile = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($envFile as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        
+        if ($key === 'DB_HOST') $host = $value;
+        if ($key === 'DB_NAME') $db = $value;
+        if ($key === 'DB_USER') $user = $value;
+        if ($key === 'DB_PASSWORD') $pass = $value;
+        if ($key === 'DB_PORT') $port = $value;
+    }
 }
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
@@ -32,6 +38,6 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    die("Connection failed: " . $e->getMessage() . "<br>Host: $host<br>DB: $db<br>User: $user");
 }
 ?>

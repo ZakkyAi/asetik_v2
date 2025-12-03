@@ -4,13 +4,9 @@ header('Content-Type: application/json');
 
 try {
     // Check if we can load environment variables
-    require_once __DIR__ . '/vendor/autoload.php';
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
-    
-    // Check database connection
-    $host = $_ENV['DB_HOST'] ?? 'not set';
-    $db   = $_ENV['DB_NAME'] ?? 'not set';
+    // Check environment variables (Railway populates $_SERVER/getenv)
+    $host = $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? 'not set';
+    $db   = $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? 'not set';
     
     echo json_encode([
         'status' => 'ok',

@@ -1,0 +1,45 @@
+# Environment variables (NEVER commit these!)
+.env
+.ENV
+.env.local
+.env.*.local
+
+# Composer
+/vendor/
+
+# Uploaded files (user-generated content)
+/upload_image/uploads/*
+/upload_image/uploads_products/*
+# Keep the directories but ignore contents
+!upload_image/uploads/.gitkeep
+!upload_image/uploads_products/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Log files
+*.log
+error_log
+access_log
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Test files (optional - keep test_connection.php for now)
+# test_connection.php
+# test.php
+
+# Build files
+*.min.js
+*.min.css

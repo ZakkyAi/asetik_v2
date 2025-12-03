@@ -31,18 +31,35 @@ try {
         
         // Method 3: shell_exec dig
         if (function_exists('shell_exec')) {
-            $ip = trim(shell_exec("dig +short A " . escapeshellarg($hostname)));
-            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                return ['ip' => $ip, 'method' => 'dig'];
+            // Try Google DNS
+            $output = shell_exec("dig @8.8.8.8 +short A " . escapeshellarg($hostname));
+            if ($output !== null) {
+                $ip = trim($output);
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    return ['ip' => $ip, 'method' => 'dig_google'];
+                }
+            }
+
+            $output = shell_exec("dig +short A " . escapeshellarg($hostname));
+            if ($output !== null) {
+                $ip = trim($output);
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    return ['ip' => $ip, 'method' => 'dig'];
+                }
             }
         }
         
         // Fallback
-        return ['ip' => gethostbyname($hostname), 'method' => 'fallback'];
+        $ip = gethostbyname($hostname);
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return ['ip' => $ip, 'method' => 'gethostbyname'];
+        }
+
+        return ['ip' => null, 'method' => 'failed'];
     }
 
     $resolution = getIPv4($host);
-    $hostIPv4 = $resolution['ip'];
+    $hostIPv4 = $resolution['ip'] ?? $host; // Fallback to host if null, just to show in JSON
     
     $response = [
         'status' => 'ok',

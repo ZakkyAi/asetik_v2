@@ -50,14 +50,27 @@ function getIPv4($hostname) {
     
     // Method 3: shell_exec with dig (if available)
     if (function_exists('shell_exec')) {
-        $ip = trim(shell_exec("dig +short A " . escapeshellarg($hostname)));
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            return $ip;
+        // Try using Google DNS explicitly
+        $output = shell_exec("dig @8.8.8.8 +short A " . escapeshellarg($hostname));
+        if ($output !== null) {
+            $ip = trim($output);
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return $ip;
+            }
+        }
+
+        // Try standard dig
+        $output = shell_exec("dig +short A " . escapeshellarg($hostname));
+        if ($output !== null) {
+            $ip = trim($output);
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return $ip;
+            }
         }
         
         // Method 4: getent
         $output = shell_exec("getent hosts " . escapeshellarg($hostname));
-        if ($output) {
+        if ($output !== null) {
             $parts = preg_split('/\s+/', trim($output));
             if (isset($parts[0]) && filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                 return $parts[0];
@@ -66,10 +79,21 @@ function getIPv4($hostname) {
     }
     
     // Fallback: gethostbyname (might return hostname on failure)
-    return gethostbyname($hostname);
+    $ip = gethostbyname($hostname);
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        return $ip;
+    }
+
+    return null; // Failed to resolve to IPv4
 }
 
 $hostIPv4 = getIPv4($host);
+
+// If we couldn't resolve to IPv4, we can't connect on Railway (IPv6 is broken)
+if (!$hostIPv4) {
+    die("Fatal Error: Could not resolve database host '$host' to an IPv4 address. DNS resolution failed.");
+}
+
 $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

@@ -1,4 +1,5 @@
 <?php
+// Updated: 2025-12-03 21:03 - Fixed for Railway deployment
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Load .env file only if it exists (for local development)

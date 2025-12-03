@@ -29,7 +29,23 @@ if (empty($pass) && file_exists(__DIR__ . '/.env')) {
 }
 
 // Force IPv4 resolution to avoid IPv6 connection issues on Railway
-$hostIPv4 = gethostbyname($host);
+$hostIPv4 = $host;
+// Try dns_get_record for A records (IPv4)
+if (function_exists('dns_get_record')) {
+    $records = dns_get_record($host, DNS_A);
+    if (!empty($records) && isset($records[0]['ip'])) {
+        $hostIPv4 = $records[0]['ip'];
+    }
+}
+
+// Fallback to gethostbyname if dns_get_record failed or didn't find anything
+if ($hostIPv4 === $host) {
+    $ip = gethostbyname($host);
+    if ($ip !== $host) {
+        $hostIPv4 = $ip;
+    }
+}
+
 $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

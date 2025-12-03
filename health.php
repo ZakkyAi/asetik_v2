@@ -8,22 +8,41 @@ try {
     $host = $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? 'not set';
     $db   = $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? 'not set';
     
-    // Force IPv4 resolution
-    $hostIPv4 = $host;
-    $dns_records = [];
-    if (function_exists('dns_get_record')) {
-        $dns_records = dns_get_record($host, DNS_A);
-        if (!empty($dns_records) && isset($dns_records[0]['ip'])) {
-            $hostIPv4 = $dns_records[0]['ip'];
+    // Robust IPv4 resolution
+    function getIPv4($hostname) {
+        $hostname = trim($hostname);
+        $debug = [];
+        
+        // Method 1: gethostbynamel
+        $ips = gethostbynamel($hostname);
+        if ($ips && is_array($ips) && !empty($ips)) {
+            return ['ip' => $ips[0], 'method' => 'gethostbynamel'];
         }
-    }
-    
-    if ($hostIPv4 === $host) {
-        $ip = gethostbyname($host);
-        if ($ip !== $host) {
-            $hostIPv4 = $ip;
+        
+        // Method 2: dns_get_record
+        if (function_exists('dns_get_record')) {
+            $records = dns_get_record($hostname, DNS_A);
+            if ($records && !empty($records)) {
+                foreach ($records as $r) {
+                    if (isset($r['ip'])) return ['ip' => $r['ip'], 'method' => 'dns_get_record'];
+                }
+            }
         }
+        
+        // Method 3: shell_exec dig
+        if (function_exists('shell_exec')) {
+            $ip = trim(shell_exec("dig +short A " . escapeshellarg($hostname)));
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return ['ip' => $ip, 'method' => 'dig'];
+            }
+        }
+        
+        // Fallback
+        return ['ip' => gethostbyname($hostname), 'method' => 'fallback'];
     }
+
+    $resolution = getIPv4($host);
+    $hostIPv4 = $resolution['ip'];
     
     $response = [
         'status' => 'ok',
@@ -31,7 +50,7 @@ try {
         'php_version' => phpversion(),
         'db_host' => $host,
         'db_host_resolved' => $hostIPv4,
-        'dns_debug' => $dns_records,
+        'resolution_method' => $resolution['method'],
         'db_name' => $db,
         'timestamp' => date('Y-m-d H:i:s')
     ];

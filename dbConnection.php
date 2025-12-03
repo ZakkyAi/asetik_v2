@@ -89,9 +89,41 @@ function getIPv4($hostname) {
 
 $hostIPv4 = getIPv4($host);
 
-// If we couldn't resolve to IPv4, we can't connect on Railway (IPv6 is broken)
+// Auto-fallback to Supavisor Pooler if direct IPv4 fails
 if (!$hostIPv4) {
-    die("Fatal Error: Could not resolve database host '$host' to an IPv4 address. DNS resolution failed.");
+    // Extract project ID from host (e.g., db.abcdefg.supabase.co -> abcdefg)
+    if (preg_match('/^db\.([a-z0-9]+)\.supabase\.co$/', $host, $matches)) {
+        $projectId = $matches[1];
+        
+        // Try common pooler regions (starting with Singapore as it matches the IPv6 range seen)
+        $poolerRegions = [
+            'aws-0-ap-southeast-1.pooler.supabase.com', // Singapore
+            'aws-0-us-east-1.pooler.supabase.com',      // N. Virginia
+            'aws-0-eu-central-1.pooler.supabase.com',   // Frankfurt
+            'aws-0-us-west-1.pooler.supabase.com'       // N. California
+        ];
+        
+        foreach ($poolerRegions as $poolerHost) {
+            $poolerIP = getIPv4($poolerHost);
+            if ($poolerIP) {
+                $hostIPv4 = $poolerIP; // Use the pooler's IPv4
+                
+                // Fix username for pooler (must be user.project)
+                if (strpos($user, '.') === false) {
+                    $user = "$user.$projectId";
+                }
+                
+                // Use port 5432 (Session mode) or 6543 (Transaction mode)
+                // Keep 5432 for compatibility
+                break; 
+            }
+        }
+    }
+}
+
+// If still no IPv4, we are stuck
+if (!$hostIPv4) {
+    die("Fatal Error: Could not resolve database host '$host' to an IPv4 address, and fallback to pooler failed. Please check your database configuration.");
 }
 
 $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";

@@ -2,55 +2,38 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-echo "<!DOCTYPE html><html><head><title>Connection Test</title></head><body>";
-echo "<h1>Testing Supabase Connection</h1>";
+$host = 'db.jadwfkeagcceroypuqer.supabase.co';
+$project = 'jadwfkeagcceroypuqer';
 
-// For local development with .env file
-if (file_exists(__DIR__ . '/.env')) {
-    $envFile = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($envFile as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        list($key, $value) = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
-        $_ENV[trim($key)] = trim($value);
-    }
-    echo "<p>✓ .env file loaded manually</p>";
+echo "<!DOCTYPE html><html><head><title>DNS Diagnostics</title></head><body>";
+echo "<h1>DNS Diagnostics</h1>";
+
+function check($h) {
+    echo "<h3>Checking: $h</h3>";
+    $a = dns_get_record($h, DNS_A);
+    $aaaa = dns_get_record($h, DNS_AAAA);
+    $cname = dns_get_record($h, DNS_CNAME);
+    
+    echo "<b>A (IPv4):</b> " . (empty($a) ? "NONE" : json_encode($a)) . "<br>";
+    echo "<b>AAAA (IPv6):</b> " . (empty($aaaa) ? "NONE" : json_encode($aaaa)) . "<br>";
+    echo "<b>CNAME:</b> " . (empty($cname) ? "NONE" : json_encode($cname)) . "<br>";
+    
+    $ip = gethostbyname($h);
+    echo "<b>gethostbyname:</b> $ip<br>";
 }
 
-$host = $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? $_ENV['DB_HOST'] ?? '';
-$db   = $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? $_ENV['DB_NAME'] ?? '';
-$user = $_SERVER['DB_USER'] ?? getenv('DB_USER') ?? $_ENV['DB_USER'] ?? '';
-$pass = $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? $_ENV['DB_PASSWORD'] ?? '';
-$port = $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?? $_ENV['DB_PORT'] ?? '5432';
+check($host);
+check("$project.supabase.co");
+check("aws-0-ap-southeast-1.pooler.supabase.com");
 
-echo "<p>Host: $host</p>";
-echo "<p>Database: $db</p>";
-echo "<p>User: $user</p>";
-echo "<p>Port: $port</p>";
-
-try {
-    // Force IPv4 resolution
-    $hostIPv4 = gethostbyname($host);
-    echo "<p>Resolved Host (IPv4): $hostIPv4</p>";
-    
-    $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";
-    
-    echo "<p>Attempting connection...</p>";
-    
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_TIMEOUT => 5
-    ]);
-    
-    echo "<h2 style='color:green'>✓ Connection Successful!</h2>";
-    
-    $result = $pdo->query("SELECT version()");
-    $version = $result->fetch();
-    echo "<p>PostgreSQL: " . $version['version'] . "</p>";
-    
-} catch (Exception $e) {
-    echo "<h2 style='color:red'>✗ Connection Failed</h2>";
-    echo "<p><strong>Error:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+// Try to find the pooler host
+$regions = ['ap-southeast-1', 'us-east-1', 'eu-central-1', 'us-west-1'];
+foreach ($regions as $r) {
+    $ph = "aws-0-$r.pooler.supabase.com";
+    $ip = gethostbyname($ph);
+    if ($ip !== $ph) {
+        echo "Found pooler for region $r: $ph -> $ip<br>";
+    }
 }
 
 echo "</body></html>";

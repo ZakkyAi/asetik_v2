@@ -122,7 +122,10 @@ function setupDatabase($pdo) {
         return ['success' => true, 'message' => 'Database setup completed successfully!'];
 
     } catch (Exception $e) {
-        $pdo->rollBack();
+        // Only rollback if transaction is active
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         return ['success' => false, 'message' => 'Setup failed: ' . $e->getMessage()];
     }
 }

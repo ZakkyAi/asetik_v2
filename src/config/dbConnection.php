@@ -4,12 +4,12 @@
  * Compatible with Railway MySQL and local XAMPP
  */
 
-// Get environment variables (Railway or system)
-$host = $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? getenv('MYSQLHOST') ?? 'localhost';
-$db   = $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? getenv('MYSQLDATABASE') ?? 'asetik_v2';
-$user = $_SERVER['DB_USER'] ?? getenv('DB_USER') ?? getenv('MYSQLUSER') ?? 'root';
-$pass = $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? getenv('MYSQLPASSWORD') ?? '';
-$port = $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?? getenv('MYSQLPORT') ?? '3306';
+// Get environment variables (Railway MYSQL* variables take priority)
+$host = $_SERVER['MYSQLHOST'] ?? getenv('MYSQLHOST') ?? $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ?? 'localhost';
+$db   = $_SERVER['MYSQLDATABASE'] ?? getenv('MYSQLDATABASE') ?? $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ?? 'asetik_v2';
+$user = $_SERVER['MYSQLUSER'] ?? getenv('MYSQLUSER') ?? $_SERVER['DB_USER'] ?? getenv('DB_USER') ?? 'root';
+$pass = $_SERVER['MYSQLPASSWORD'] ?? getenv('MYSQLPASSWORD') ?? $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? '';
+$port = $_SERVER['MYSQLPORT'] ?? getenv('MYSQLPORT') ?? $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?? '3306';
 
 // For local development with .env file
 if (empty($pass) && file_exists(__DIR__ . '/../../.env')) {

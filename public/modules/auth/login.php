@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white relative">
         <div class="absolute top-0 w-full h-4 bg-blue-500"></div>
         <h2 class="text-2xl font-bold mb-8 mt-4">Login</h2>
-        <form id="loginForm" action="login.php" method="POST" class="w-1/2">
+        <form id="loginForm" action="" method="POST" class="w-1/2">
             <div class="mb-4 flex items-center border border-gray-300 rounded px-3 py-2">
                 <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">

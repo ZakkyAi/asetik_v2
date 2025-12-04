@@ -124,7 +124,7 @@ if (!$hostIPv4) {
                     // specific test connection with short timeout
                     $testPdo = new PDO($testDsn, $testUser, $pass, [
                         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                        PDO::ATTR_TIMEOUT => 2
+                        PDO::ATTR_TIMEOUT => 3 // Increased slightly
                     ]);
                     
                     // If we got here, it worked!
@@ -132,31 +132,27 @@ if (!$hostIPv4) {
                     $user = $testUser;
                     break;
                 } catch (PDOException $e) {
-                    // Check if error is "Tenant or user not found" (SQLSTATE 08006 or similar with specific message)
-                    // or "password authentication failed" (which means we found the tenant but pass is wrong)
-                    
                     $msg = $e->getMessage();
                     
-                    // If "Tenant or user not found", this is the WRONG region. Continue loop.
-                    if (strpos($msg, 'Tenant or user not found') !== false) {
-                        continue;
+                    // If "password authentication failed", this IS the right region, just wrong pass.
+                    if (strpos($msg, 'password authentication failed') !== false) {
+                        $hostIPv4 = $poolerIP;
+                        $user = $testUser;
+                        break;
                     }
                     
-                    // If "password authentication failed", this IS the right region, just wrong pass.
-                    // Or if any other error (like network), we might as well try to use this one or fail.
-                    // For now, if it's NOT "Tenant not found", we assume this is the right region (or closest we can get).
-                    $hostIPv4 = $poolerIP;
-                    $user = $testUser;
-                    break;
+                    // For any other error (Tenant not found, timeout, network unreachable), 
+                    // we assume this is NOT the right region (or we can't reach it), so we continue.
+                    continue;
                 }
             }
         }
     }
 }
 
-// If still no IPv4, we are stuck
+// If still no IPv4, fallback to original host (might work via IPv6)
 if (!$hostIPv4) {
-    die("Fatal Error: Could not resolve database host '$host' to an IPv4 address, and fallback to pooler failed. Please check your database configuration.");
+    $hostIPv4 = $host;
 }
 
 $dsn = "pgsql:host=$hostIPv4;port=$port;dbname=$db;sslmode=require";

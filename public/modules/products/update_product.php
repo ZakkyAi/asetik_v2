@@ -1,4 +1,5 @@
 <?php
+// Include the database connection file
 
 // Start the session
 if (session_status() == PHP_SESSION_NONE) {
@@ -12,32 +13,44 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
     exit();  // Make sure to stop the script after redirection
 }
-// Include the database connection file
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get form data
-    $name = $_POST['name'];
-    $description = $_POST['description'];
-    $photo = $_FILES['photo']['name'];
+if (isset($_GET['id'])) {
+    $id = $_GET['id'];
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+    $stmt->execute(['id' => $id]);
+    $product = $stmt->fetch();
 
-    // Move the uploaded photo to the server folder
-    if ($photo) {
-        move_uploaded_file($_FILES['photo']['tmp_name'], "../../../public/uploads/" . $photo);
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        // Get form data
+        $name = $_POST['name'];
+        $description = $_POST['description'];
+        $photo = $_FILES['photo']['name'];
+
+        // If no photo is uploaded, retain the existing one
+        if (!$photo) {
+            $photo = $product['photo'];
+        } else {
+            move_uploaded_file($_FILES['photo']['tmp_name'], "../../uploads/" . $photo);
+        }
+
+        // Update product data in the database
+        // Update product data in the database
+        $query = "UPDATE products SET name=:name, description=:description, photo=:photo WHERE id=:id";
+        try {
+            $pdo->prepare($query)->execute([
+                'name' => $name,
+                'description' => $description,
+                'photo' => $photo,
+                'id' => $id
+            ]);
+        } catch (PDOException $e) {
+            die("Error updating product: " . $e->getMessage());
+        }
+
+        echo "Product updated successfully!";
+        header('Location: index.php');
     }
-
-    // Insert the data into the database
-    $query = "INSERT INTO products (name, photo, description) VALUES (:name, :photo, :description)";
-    
-    try {
-        $stmt = $pdo->prepare($query);
-        $stmt->execute(['name' => $name, 'photo' => $photo, 'description' => $description]);
-    } catch (PDOException $e) {
-        die("Error adding product: " . $e->getMessage());
-    }
-
-    echo "Product added successfully!";
-    header("Location: index.php");
 }
 ?>
 
@@ -176,21 +189,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../../../public/assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="../../index.php">
+            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../index.php">Home</a>
+                <a class="nav-link active" href="../../index.php">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../new_crud_admin/index.php">User</a>
+                        <a class="nav-link" href="../users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../crud_products/index.php">Peripheral</a>
+                        <a class="nav-link" href="../products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="../records/index.php">Records</a>
@@ -207,10 +220,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="../../showdata.php">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
@@ -220,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -230,22 +243,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!-- Content Section -->
 <div class="content" id="content">
 
-
-<h2>Add New Product</h2>
-<form method="post" enctype="multipart/form-data">
-    <label>Name:</label><br>
-    <input type="text" name="name" required style="height: 30px; width: 40%;"><br>
-    <label>Description:</label><br>
-    <textarea name="description" required style="height: 100px; width: 40%;"></textarea><br>
-    <label>Photo:</label><br>
-    <input type="file" name="photo" required style="font-size: 16px; margin-bottom: 15px;"><br>
-    <input type="submit" value="Add Product" class="btn btn-edit" style="margin-top: 10px;">
-</form>
-<div style="padding-top: 10px;">
+    <h2>Edit Product</h2>
+    <form method="post" enctype="multipart/form-data">
+        <label>Name:</label><br>
+        <input type="text" name="name" value="<?php echo $product['name']; ?>" required style="height: 30px; width: 40%;"><br>
+        <label>Description:</label><br>
+        <textarea name="description" required style="height: 100px; width: 40%;"><?php echo $product['description']; ?></textarea><br>
+        <label>Photo:</label><br>
+        <input type="file" name="photo" style="font-size: 16px; margin-bottom: 15px;"> <br>
+        <input type="submit" value="Update Product" class="btn btn-edit" style="margin-top: 10px;">
+    </form>
+    <div style="padding-top: 10px;">
 <a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
 
 </div>
- 
+    </div>
 
 <!-- Bootstrap 5 JavaScript and Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqO4rx0z6FMqU5tq1VqW58RclPb1Hlmh0fJkhDi1ozh4c" crossorigin="anonymous"></script>

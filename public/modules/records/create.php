@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -179,21 +179,21 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../../../public/assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="../../index.php">
+            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../index.php">Home</a>
+                <a class="nav-link active" href="../../index.php">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../new_crud_admin/index.php">User</a>
+                        <a class="nav-link" href="../users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../crud_products/index.php">Peripheral</a>
+                        <a class="nav-link" href="../products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Records</a>
@@ -210,10 +210,10 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="../../showdata.php">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
@@ -223,7 +223,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -332,7 +332,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 if (!option.id) {
                     return option.text;
                 }
-                var imgSrc = "../../../public/uploads/" + $(option.element).data('image');
+                var imgSrc = "../../uploads/" + $(option.element).data('image');
                 var markup = '<img src="' + imgSrc + '" alt="User Photo" style="width: 30px; height: 30px;"> ' + option.text;
                 return markup;
             }
@@ -341,7 +341,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 if (!option.id) {
                     return option.text;
                 }
-                var imgSrc = "../../../public/uploads/" + $(option.element).data('image');
+                var imgSrc = "../../uploads/" + $(option.element).data('image');
                 var markup = '<img src="' + imgSrc + '" alt="Product Photo" style="width: 30px; height: 30px;"> ' + option.text;
                 return markup;
             }

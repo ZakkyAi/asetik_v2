@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] != 'admin') {
 }
 
 // Include database connection file
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 // Check if 'id' is passed as a GET parameter
 if (isset($_GET['id'])) {

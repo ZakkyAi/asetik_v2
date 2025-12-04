@@ -21,7 +21,8 @@ if (!isset($_SESSION['user_id'])) {
     <title>Asetik</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65Vohh0fJkhDi1ozh4c" crossorigin="anonymous">
-    <style>
+
+<style>
         body {
             font-family: 'Oswald', sans-serif;
         }
@@ -87,36 +88,7 @@ if (!isset($_SESSION['user_id'])) {
             margin-left: 1rem;
             margin-bottom: 2rem;
         }
-                /* Custom Styles for Tables */
-.table th, .table td {
-    text-align: center;
-    vertical-align: middle;
-}
-
-/* User Details */
-h1, h2 {
-    color: #333;
-}
-
-/* Product Description Styling */
-td img {
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Button Styling */
-button.btn {
-    margin-top: 5px;
-    padding: 10px 15px;
-}
-
-/* No Photo Styling */
-.no-photo {
-    color: #888;
-    font-style: italic;
-    text-align: center;
-}
-table, td, th {
+        table, td, th {
     border: 3px solid !important;
     border-collapse: collapse;
     padding: 5px;
@@ -164,6 +136,7 @@ table, td, th {
     background-color: #218838; /* Darker green on hover */
 }
 
+
     </style>
 </head>
 <body>
@@ -174,36 +147,41 @@ table, td, th {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../../../public/assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="../../index.php">
+            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../index.php">Home</a>
+                <a class="nav-link active" href="../../index.php">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">User</a>
+                        <a class="nav-link" href="../users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../crud_products/index.php">Peripheral</a>
+                        <a class="nav-link" href="../products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="../records/index.php">Records</a>
                     </li>
                     <li class="nav-item">
-                    <a class="nav-link" href="../approve.php">Approve Repair</a>
+                    <a class="nav-link" href="../../approve.php">Approve Repair</a>
                     </li>
-
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="#">Peripheral Distribution</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Monthly Repair</a>
+                    </li> -->
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="../../showdata.php">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
@@ -213,7 +191,7 @@ table, td, th {
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -223,56 +201,50 @@ table, td, th {
 <!-- Content Section -->
 <div class="content" id="content">
 
-
 <br>
-
-<a href="add_user.php" class="btn btn-add" style="margin-bottom: 10px;">Add New User</a>
-
-
+<a href="add_product.php" class="btn btn-add" style="margin-bottom: 10px;">Add New Product</a>
 <?php
-require_once(__DIR__ . "/../../config/dbConnection.php");
+// Include the database connection file
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
-$users = $pdo->query("SELECT * FROM users")->fetchAll();
-?>
+// Connect to the database
+// Connection is already established in dbConnection.php as $pdo
 
-<table border="1">
-    <tr>
+// SQL query to fetch all data from the table
+$products = $pdo->query("SELECT * FROM products")->fetchAll();
+
+if (count($products) > 0) {
+    echo "<table border='1' cellpadding='10'>";
+    echo "<tr>
         <th>No</th>
         <th>Name</th>
-        <th>Age</th>
-        <th>Email</th>
-        <th>Divisi</th>
         <th>Description</th>
         <th>Photo</th>
-        <th>Username</th>
-        <th>Badge</th>
-        <th>Level</th>
         <th>Actions</th>
-    </tr>
-    <?php 
-    $counter = 1;
-    foreach ($users as $user): ?>
-        <tr>
-            <td><?php echo $counter++; ?></td>
-            <td><?= $user['name'] ?></td>
-            <td><?= $user['age'] ?></td>
-            <td><?= $user['email'] ?></td>
-            <td><?= $user['divisi'] ?></td>
-            <td><?= $user['description'] ?></td>
-            <td>
-                <?= ($user['photo'] ? "<img src='../../../public/uploads/" . $user['photo'] . "' alt='Photo' width='100'>" : 'No Photo') ?>
-            </td>
-            <td><?= $user['username'] ?></td>
-            <td><?= $user['badge'] ?></td>
-            <td><?= $user['level'] ?></td>
-            <td>
-                <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn btn-edit">Edit</a> 
-                <a href="delete_user.php?id=<?= $user['id'] ?>" onclick="return confirm('Are you sure?')" class="btn btn-delete">Delete</a> 
-            </td>
+    </tr>";
 
-        </tr>
-    <?php endforeach; ?>
-</table>
+    $counter = 1;
+    $counter = 1;
+    foreach ($products as $row) {
+        echo "<tr>
+            <td>" .   $counter++ ."</td>
+            <td>" . $row['name'] . "</td>
+            <td>" . ($row['description'] ?: 'No Description') . "</td>
+            <td>" . ($row['photo'] ? "<img src='../../uploads/" . $row['photo'] . "' alt='Photo' width='100'>" : 'No Photo') . "</td>
+            <td>
+                <a href='update_product.php?id=" . $row['id'] . "' class='btn btn-edit'>Edit</a>
+                <a href='delete_product.php?id=" . $row['id'] . "' class='btn btn-delete' onclick='return confirm(\"Are you sure you want to delete this product?\");'>Delete</a>
+            </td>
+        </tr>";
+    }
+    echo "</table>";
+} else {
+    echo "No products found.";
+}
+
+
+
+?>
 
 
 
@@ -299,3 +271,4 @@ $users = $pdo->query("SELECT * FROM users")->fetchAll();
 </script>
 </body>
 </html>
+

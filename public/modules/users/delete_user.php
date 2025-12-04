@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

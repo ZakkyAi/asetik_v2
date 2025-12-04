@@ -1,6 +1,5 @@
 <?php
-// Include the database connection file
-
+// add_user.php
 // Start the session
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -13,47 +12,56 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
     exit();  // Make sure to stop the script after redirection
 }
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
-    $stmt->execute(['id' => $id]);
-    $product = $stmt->fetch();
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'];
+    $age = $_POST['age'];
+    $email = $_POST['email'];
+    $divisi = $_POST['divisi'];
+    $description = $_POST['description'];
+    $username = $_POST['username'];
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $badge = $_POST['badge'];
+    $level = $_POST['level'];
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        // Get form data
-        $name = $_POST['name'];
-        $description = $_POST['description'];
+    // Handle photo upload
+    $photo = null;
+    if (!empty($_FILES['photo']['name'])) {
         $photo = $_FILES['photo']['name'];
+        $target = "../../uploads/" . basename($photo);
 
-        // If no photo is uploaded, retain the existing one
-        if (!$photo) {
-            $photo = $product['photo'];
-        } else {
-            move_uploaded_file($_FILES['photo']['tmp_name'], "../../../public/uploads/" . $photo);
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $target)) {
+            echo "Failed to upload photo.";
+            exit();
         }
+    }
 
-        // Update product data in the database
-        // Update product data in the database
-        $query = "UPDATE products SET name=:name, description=:description, photo=:photo WHERE id=:id";
-        try {
-            $pdo->prepare($query)->execute([
-                'name' => $name,
-                'description' => $description,
-                'photo' => $photo,
-                'id' => $id
-            ]);
-        } catch (PDOException $e) {
-            die("Error updating product: " . $e->getMessage());
-        }
+    // Insert user data
+    $query = "INSERT INTO users (name, age, email, description, photo, username, password_user, badge, level, divisi) 
+    VALUES (:name, :age, :email, :description, :photo, :username, :password, :badge, :level, :divisi)";
 
-        echo "Product updated successfully!";
-        header('Location: index.php');
+    try {
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([
+            'name' => $name,
+            'age' => $age,
+            'email' => $email,
+            'description' => $description,
+            'photo' => $photo,
+            'username' => $username,
+            'password' => $password,
+            'badge' => $badge,
+            'level' => $level,
+            'divisi' => $divisi
+        ]);
+        header("Location: index.php");
+    } catch (PDOException $e) {
+        echo "Error adding user: " . $e->getMessage();
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -63,8 +71,7 @@ if (isset($_GET['id'])) {
     <title>Asetik</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65Vohh0fJkhDi1ozh4c" crossorigin="anonymous">
-
-<style>
+    <style>
         body {
             font-family: 'Oswald', sans-serif;
         }
@@ -130,7 +137,36 @@ if (isset($_GET['id'])) {
             margin-left: 1rem;
             margin-bottom: 2rem;
         }
-        table, td, th {
+                /* Custom Styles for Tables */
+.table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* User Details */
+h1, h2 {
+    color: #333;
+}
+
+/* Product Description Styling */
+td img {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styling */
+button.btn {
+    margin-top: 5px;
+    padding: 10px 15px;
+}
+
+/* No Photo Styling */
+.no-photo {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+table, td, th {
     border: 3px solid !important;
     border-collapse: collapse;
     padding: 5px;
@@ -178,7 +214,6 @@ if (isset($_GET['id'])) {
     background-color: #218838; /* Darker green on hover */
 }
 
-
     </style>
 </head>
 <body>
@@ -189,21 +224,21 @@ if (isset($_GET['id'])) {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../../../public/assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="../../index.php">
+            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../index.php">Home</a>
+                <a class="nav-link active" href="../../index.php">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../new_crud_admin/index.php">User</a>
+                        <a class="nav-link" href="index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../crud_products/index.php">Peripheral</a>
+                        <a class="nav-link" href="../products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="../records/index.php">Records</a>
@@ -211,19 +246,19 @@ if (isset($_GET['id'])) {
                     <li class="nav-item">
                         <a class="nav-link" href="#">Approve Repair</a>
                     </li>
-                    <!-- <li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Monthly Repair</a>
-                    </li> -->
+                    </li>
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="../../showdata.php">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
@@ -233,7 +268,7 @@ if (isset($_GET['id'])) {
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -242,22 +277,48 @@ if (isset($_GET['id'])) {
 
 <!-- Content Section -->
 <div class="content" id="content">
+        <h1>Add New User</h1>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" required style="height: 30px; width: 40%;"><br>
 
-    <h2>Edit Product</h2>
-    <form method="post" enctype="multipart/form-data">
-        <label>Name:</label><br>
-        <input type="text" name="name" value="<?php echo $product['name']; ?>" required style="height: 30px; width: 40%;"><br>
-        <label>Description:</label><br>
-        <textarea name="description" required style="height: 100px; width: 40%;"><?php echo $product['description']; ?></textarea><br>
-        <label>Photo:</label><br>
-        <input type="file" name="photo" style="font-size: 16px; margin-bottom: 15px;"> <br>
-        <input type="submit" value="Update Product" class="btn btn-edit" style="margin-top: 10px;">
-    </form>
-    <div style="padding-top: 10px;">
-<a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+            <label for="age">Age:</label>
+            <input type="number" name="age" id="age" style="height: 30px; width: 40%;"><br>
 
-</div>
-    </div>
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required style="height: 30px; width: 40%;"><br>
+
+            <label for="divisi">Divisi:</label>
+            <input type="text" name="divisi" id="divisi" style="height: 30px; width: 40%;"><br>
+
+
+            <label for="description">Description:</label>
+            <textarea name="description" id="description" style="height: 30px; width: 40%;"></textarea><br>
+
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" required style="height: 30px; width: 40%;"><br>
+
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" required style="height: 30px; width: 40%;"><br>
+
+            <label for="badge">Badge:</label>
+            <input type="text" name="badge" id="badge" style="height: 30px; width: 40%;"><br>
+
+            <label for="level">Level:</label>
+            <select name="level" id="level" required>
+                <option value="admin">Admin</option>
+                <option value="normal_user" selected>Normal User</option>
+            </select><br>
+
+            <label for="photo">Photo:</label>
+            <input type="file" name="photo" id="photo"><br>
+
+            <button type="submit">Add User</button>
+        </form>
+
+        <a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+
+        </div>
 
 <!-- Bootstrap 5 JavaScript and Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqO4rx0z6FMqU5tq1VqW58RclPb1Hlmh0fJkhDi1ozh4c" crossorigin="anonymous"></script>

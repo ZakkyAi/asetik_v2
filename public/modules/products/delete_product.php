@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
     exit();  // Make sure to stop the script after redirection
 }
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

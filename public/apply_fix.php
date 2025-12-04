@@ -8,11 +8,11 @@ if (session_status() == PHP_SESSION_NONE) {
 if (!isset($_SESSION['user_id'])) {
     session_destroy();
     // Redirect to login page
-    header('Location: login/login.php');
+    header('Location: modules/auth/login.php');
     exit();
 }
 
-require_once("dbConnection.php");
+require_once(__DIR__ . "/../src/config/dbConnection.php");
 
 // Connect to the database
 // Connection is already established in dbConnection.php as $pdo
@@ -236,7 +236,7 @@ table, td, th {
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
-            <img src="logo/logo.png" alt="Logo" style="width: 150px;">
+            <img src="assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -246,13 +246,13 @@ table, td, th {
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="new_crud_admin/index.php">User</a>
+                        <a class="nav-link" href="modules/users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="crud_products/index.php">Product</a>
+                        <a class="nav-link" href="modules/products/index.php">Product</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="records/index.php">Records</a>
+                        <a class="nav-link" href="modules/records/index.php">Records</a>
                     </li>
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
@@ -268,12 +268,12 @@ table, td, th {
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="logout.php">Logout</a>
+                    <a class="nav-link" href="modules/auth/logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="modules/auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>

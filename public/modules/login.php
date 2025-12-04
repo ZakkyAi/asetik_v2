@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the username and password from the form
@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Redirect based on user level
             if ($user['level'] == 'admin') {
-                header("Location: ../../../public/index.php");
+                header("Location: ../../index.php");
             } else {
-                header("Location: ../../../public/index.php"); // Redirect normal users to the homepage
+                header("Location: ../../index.php"); // Redirect normal users to the homepage
             }
             exit(); // Make sure no further code is executed
         } else {
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
     </div>
     <div class="hidden lg:flex w-1/2 flex-col justify-center items-center bg-blue-600 relative">
-        <img src="../../../public/assets/images/logo.png" alt="Logo" class="w-1/2 mb-8">
+        <img src="../../assets/images/logo.png" alt="Logo" class="w-1/2 mb-8">
     </div>
     <script src="loginjs"></script>
     <script>

@@ -8,7 +8,7 @@ if (session_status() == PHP_SESSION_NONE) {
 if (!isset($_SESSION['user_id'])) {
     session_destroy();
     // Redirect to login page (optional)
-    header('Location: ../src/modules/auth/login.php');
+    header('Location: modules/auth/login.php');
     exit();  // Make sure to stop the script after redirection
 }
 
@@ -26,7 +26,7 @@ if (isset($_SESSION['user_id'])) {
 if (!$user) {
     // If user data is not found, destroy the session and redirect
     session_destroy();
-    header('Location: ../src/modules/auth/login.php');
+    header('Location: modules/auth/login.php');
     exit();
 }
 ?>
@@ -200,13 +200,13 @@ table, td, th {
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../src/modules/users/index.php">User</a>
+                        <a class="nav-link" href="modules/users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../src/modules/products/index.php">Peripheral</a>
+                        <a class="nav-link" href="modules/products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../src/modules/records/index.php">Records</a>
+                        <a class="nav-link" href="modules/records/index.php">Records</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="approve.php">Approve Repair</a>
@@ -231,12 +231,12 @@ table, td, th {
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../src/modules/auth/logout.php">Logout</a>
+                    <a class="nav-link" href="modules/auth/logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../src/modules/auth/login.php">Login</a>
+                    <a class="nav-link" href="modules/auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>

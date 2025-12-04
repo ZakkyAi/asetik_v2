@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ../auth/login.php');
     exit();  // Make sure to stop the script after redirection
 }
-require_once(__DIR__ . "/../../config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 // Fetch records query
 // Fetch records query
@@ -159,27 +159,27 @@ $records = $pdo->query("
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../../../public/assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="../../index.php">
+            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../index.php">Home</a>
+                <a class="nav-link active" href="../../index.php">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../new_crud_admin/index.php">User</a>
+                        <a class="nav-link" href="../users/index.php">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../crud_products/index.php">Peripheral</a>
+                        <a class="nav-link" href="../products/index.php">Peripheral</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Records</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../approve.php">Approve Repair</a>
+                        <a class="nav-link" href="../../approve.php">Approve Repair</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
@@ -190,10 +190,10 @@ $records = $pdo->query("
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="../../showdata.php">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
@@ -203,7 +203,7 @@ $records = $pdo->query("
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="login/login.php">Login</a>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -252,11 +252,11 @@ $records = $pdo->query("
                         <td><?= $row['user_divisi'] ?></td> 
                         <td><?= $row['user_description'] ?></td>
                         <td>
-                            <?= $row['user_photo'] ? "<img src='../../../public/uploads/" . $row['user_photo'] . "' alt='User Photo' width='100'>" : "No Photo" ?>
+                            <?= $row['user_photo'] ? "<img src='../../uploads/" . $row['user_photo'] . "' alt='User Photo' width='100'>" : "No Photo" ?>
                         </td>
                         <td><?= $row['product_name'] ?></td>
                         <td>
-                            <?= $row['product_photo'] ? "<img src='../../../public/uploads/" . $row['product_photo'] . "' alt='Product Photo' width='100'>" : "No Photo" ?>
+                            <?= $row['product_photo'] ? "<img src='../../uploads/" . $row['product_photo'] . "' alt='Product Photo' width='100'>" : "No Photo" ?>
                         </td>
                         <td><?= $row['product_description'] ?></td>
                         <td><?= $row['record_time'] ?></td>

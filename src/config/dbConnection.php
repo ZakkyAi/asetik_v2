@@ -11,9 +11,9 @@ $user = $_SERVER['DB_USER'] ?? getenv('DB_USER') ?? 'postgres';
 $pass = $_SERVER['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?? '';
 $port = $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ?? '5432';
 
-// For local development with .env file
-if (empty($pass) && file_exists(__DIR__ . '/.env')) {
-    $envFile = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// For local development with .env file (now in project root)
+if (empty($pass) && file_exists(__DIR__ . '/../../.env')) {
+    $envFile = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($envFile as $line) {
         if (strpos(trim($line), '#') === 0) continue;
         list($key, $value) = explode('=', $line, 2);

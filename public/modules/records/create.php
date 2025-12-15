@@ -218,7 +218,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="../logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
@@ -332,7 +332,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 if (!option.id) {
                     return option.text;
                 }
-                var imgSrc = "../../uploads/" + $(option.element).data('image');
+                var imgSrc = "/asetik_v2/public/uploads/" + $(option.element).data('image');
                 var markup = '<img src="' + imgSrc + '" alt="User Photo" style="width: 30px; height: 30px;"> ' + option.text;
                 return markup;
             }
@@ -341,7 +341,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
                 if (!option.id) {
                     return option.text;
                 }
-                var imgSrc = "../../uploads/" + $(option.element).data('image');
+                var imgSrc = "/asetik_v2/public/uploads/" + $(option.element).data('image');
                 var markup = '<img src="' + imgSrc + '" alt="Product Photo" style="width: 30px; height: 30px;"> ' + option.text;
                 return markup;
             }
@@ -349,7 +349,8 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
     </body>
     </html>
             <div style="padding-top: 10px;">
-            <a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+            <?php require_once(__DIR__ . "/../../../src/helpers.php"); ?>
+            <a href="<?= url('/records') ?>" class="btn btn-add" style="margin-top: 10px; margin-bottom: 10px;">Back</a>
             </div>
                 
     </div>

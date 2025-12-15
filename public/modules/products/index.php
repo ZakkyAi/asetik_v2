@@ -4,12 +4,14 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// Load helpers
+require_once(__DIR__ . "/../../../src/helpers.php");
+
 // Check if user is not logged in and destroy the session
 if (!isset($_SESSION['user_id'])) {
     session_destroy();
-    // Redirect to login page (optional)
-    header('Location: ../auth/login.php');
-    exit();  // Make sure to stop the script after redirection
+    // Redirect to login page
+    redirect('/login');
 }
 ?>
 
@@ -147,27 +149,27 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../../index.php">
-            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <a class="navbar-brand" href="<?= url('/home') ?>">
+            <img src="<?= asset('images/logo.png') ?>" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../../index.php">Home</a>
+                <a class="nav-link active" href="<?= url('/home') ?>">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../users/index.php">User</a>
+                        <a class="nav-link" href="<?= url('/users') ?>">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../products/index.php">Peripheral</a>
+                        <a class="nav-link" href="<?= url('/products') ?>">Peripheral</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../records/index.php">Records</a>
+                        <a class="nav-link" href="<?= url('/records') ?>">Records</a>
                     </li>
                     <li class="nav-item">
-                    <a class="nav-link" href="../../approve.php">Approve Repair</a>
+                    <a class="nav-link" href="<?= url('/approve') ?>">Approve Repair</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
@@ -178,20 +180,20 @@ if (!isset($_SESSION['user_id'])) {
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../../showdata.php">Show Data</a>
+                        <a class="nav-link" href="<?= url('/showdata') ?>">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="<?= url('/apply-fix') ?>">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="<?= url('/logout') ?>">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/login.php">Login</a>
+                    <a class="nav-link" href="<?= url('/login') ?>">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -202,7 +204,7 @@ if (!isset($_SESSION['user_id'])) {
 <div class="content" id="content">
 
 <br>
-<a href="add_product.php" class="btn btn-add" style="margin-bottom: 10px;">Add New Product</a>
+<a href="<?= url('/products/add') ?>" class="btn btn-add" style="margin-bottom: 10px;">Add New Product</a>
 <?php
 // Include the database connection file
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
@@ -226,14 +228,18 @@ if (count($products) > 0) {
     $counter = 1;
     $counter = 1;
     foreach ($products as $row) {
+        $editUrl = route('/products/edit/{id}', ['id' => $row['id']]);
+        $deleteUrl = route('/products/delete/{id}', ['id' => $row['id']]);
+        $photoUrl = $row['photo'] ? url('public/uploads/' . $row['photo']) : '';
+        
         echo "<tr>
             <td>" .   $counter++ ."</td>
             <td>" . $row['name'] . "</td>
             <td>" . ($row['description'] ?: 'No Description') . "</td>
-            <td>" . ($row['photo'] ? "<img src='../../uploads/" . $row['photo'] . "' alt='Photo' width='100'>" : 'No Photo') . "</td>
+            <td>" . ($row['photo'] ? "<img src='" . $photoUrl . "' alt='Photo' width='100'>" : 'No Photo') . "</td>
             <td>
-                <a href='update_product.php?id=" . $row['id'] . "' class='btn btn-edit'>Edit</a>
-                <a href='delete_product.php?id=" . $row['id'] . "' class='btn btn-delete' onclick='return confirm(\"Are you sure you want to delete this product?\");'>Delete</a>
+                <a href='" . $editUrl . "' class='btn btn-edit'>Edit</a>
+                <a href='" . $deleteUrl . "' class='btn btn-delete' onclick='return confirm(\"Are you sure you want to delete this product?\");'>Delete</a>
             </td>
         </tr>";
     }

@@ -13,31 +13,31 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] != 'admin') {
 
 // Include database connection file
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
+require_once(__DIR__ . "/../../../src/helpers.php");
 
 // Initialize variables
 $errorMessage = '';
 $recordId = null;
 
-// Check if 'id' is passed as a GET parameter
-if (isset($_GET['id'])) {
-    $recordId = intval($_GET['id']); // Sanitize input to prevent SQL injection
-
-    // Fetch the existing record details
-    // Fetch the existing record details
-    $stmt = $pdo->prepare("SELECT no_serial, no_inventaris, status FROM records WHERE id_records = :id");
-    $stmt->execute(['id' => $recordId]);
-    $record = $stmt->fetch();
-
-    if ($record) {
-        $noSerial = $record['no_serial'];
-        $noInventaris = $record['no_inventaris'];
-        $status = $record['status'];
-    } else {
-        echo "Record not found.";
-        exit();
-    }
-} else {
+// Check if 'id' is passed as route parameter
+if (!isset($id)) {
     echo "No record ID specified.";
+    exit();
+}
+
+$recordId = intval($id); // Sanitize input to prevent SQL injection
+
+// Fetch the existing record details
+$stmt = $pdo->prepare("SELECT no_serial, no_inventaris, status FROM records WHERE id_records = :id");
+$stmt->execute(['id' => $recordId]);
+$record = $stmt->fetch();
+
+if ($record) {
+    $noSerial = $record['no_serial'];
+    $noInventaris = $record['no_inventaris'];
+    $status = $record['status'];
+} else {
+    echo "Record not found.";
     exit();
 }
 
@@ -52,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = "All fields are required.";
     } else {
         // Update query
-        // Update query
         $updateQuery = "UPDATE records SET no_serial = :no_serial, no_inventaris = :no_inventaris, status = :status WHERE id_records = :id";
         try {
             $stmt = $pdo->prepare($updateQuery);
@@ -62,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'status' => $status,
                 'id' => $recordId
             ]);
-            header('Location: index.php');
+            header('Location: ' . url('/records'));
             exit();
         } catch (PDOException $e) {
             $errorMessage = "Failed to update the record: " . $e->getMessage();
@@ -70,10 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<?php if (!empty($errorMessage)): ?>
-    <p><?= $errorMessage ?></p>
-<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -246,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="../logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
@@ -261,29 +256,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- Content Section -->
 <div class="content" id="content">
 
-                <br><br>
-    <form method="POST">
-        <label for="no_serial">Serial Number:</label>
-        <input type="text" id="no_serial" name="no_serial" value="<?= htmlspecialchars($noSerial) ?>" required style="height: 20px; width: 30%;">
-        <br>
-        <label for="no_inventaris">Nomor Inventaris</label>
-        <input type="text" id="no_inventaris" name="no_inventaris" value="<?= htmlspecialchars($noInventaris) ?>" required style="height: 20px; width: 30%;">
-        <br>
-        <label for="status" style="height: 30px; width: 40%;">Status:</label>
-        <select id="status" name="status" required>
-    <option value="good" <?= $status === 'good' ? 'selected' : '' ?>>Good</option>
-    <option value="broken" <?= $status === 'broken' ? 'selected' : '' ?>>Broken</option>
-    <option value="not taken" <?= $status === 'not taken' ? 'selected' : '' ?>>Not Taken</option>
-    <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Pending</option>
-    <option value="fixing" <?= $status === 'fixing' ? 'selected' : '' ?>>Fixing</option>
-    <option value="decline" <?= $status === 'decline' ? 'selected' : '' ?>>Decline</option>
-    </select>
+<h1>Edit Record</h1>
+<br>
 
-        <br>
-        <button type="submit">Update</button>
+<?php if (!empty($errorMessage)): ?>
+    <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 20px;">
+        <?= $errorMessage ?>
+    </div>
+<?php endif; ?>
+
+<div style="max-width: 800px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <form method="POST">
+        
+        <div style="margin-bottom: 20px;">
+            <label for="no_serial" style="display: block; font-weight: bold; margin-bottom: 5px;">Serial Number:</label>
+            <input type="text" id="no_serial" name="no_serial" value="<?= htmlspecialchars($noSerial) ?>" required 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="no_inventaris" style="display: block; font-weight: bold; margin-bottom: 5px;">Nomor Inventaris:</label>
+            <input type="text" id="no_inventaris" name="no_inventaris" value="<?= htmlspecialchars($noInventaris) ?>" required 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="status" style="display: block; font-weight: bold; margin-bottom: 5px;">Status:</label>
+            <select id="status" name="status" required 
+                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                <option value="good" <?= $status === 'good' ? 'selected' : '' ?>>Good</option>
+                <option value="broken" <?= $status === 'broken' ? 'selected' : '' ?>>Broken</option>
+                <option value="not taken" <?= $status === 'not taken' ? 'selected' : '' ?>>Not Taken</option>
+                <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Pending</option>
+                <option value="fixing" <?= $status === 'fixing' ? 'selected' : '' ?>>Fixing</option>
+                <option value="decline" <?= $status === 'decline' ? 'selected' : '' ?>>Decline</option>
+            </select>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button type="submit" class="btn btn-edit" style="margin-right: 10px;">Update Record</button>
+            <a href="<?= url('/records') ?>" class="btn btn-delete">Back</a>
+        </div>
+
     </form>
-    <div style="padding-top: 10px;">
-<a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+</div>
 
 </div>
                 

@@ -1,6 +1,10 @@
 <?php
-session_start();
-require_once(__DIR__ . "/../../../src/config/dbConnection.php");
+// Start session only if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+require_once(__DIR__ . "/../../src/config/dbConnection.php");
+require_once(__DIR__ . "/../../src/helpers.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the username and password from the form
@@ -22,9 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Redirect based on user level
             if ($user['level'] == 'admin') {
-                header("Location: ../../index.php");
+                redirect('/home');
             } else {
-                header("Location: ../../index.php"); // Redirect normal users to the homepage
+                redirect('/home'); // Redirect normal users to the homepage
             }
             exit(); // Make sure no further code is executed
         } else {
@@ -59,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white relative">
         <div class="absolute top-0 w-full h-4 bg-blue-500"></div>
         <h2 class="text-2xl font-bold mb-8 mt-4">Login</h2>
-        <form id="loginForm" action="login.php" method="POST" class="w-1/2">
+        <form id="loginForm" action="<?= url('/login') ?>" method="POST" class="w-1/2">
             <div class="mb-4 flex items-center border border-gray-300 rounded px-3 py-2">
                 <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -96,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
     </div>
     <div class="hidden lg:flex w-1/2 flex-col justify-center items-center bg-blue-600 relative">
-        <img src="../../assets/images/logo.png" alt="Logo" class="w-1/2 mb-8">
+        <img src="<?= asset('images/logo.png') ?>" alt="Logo" class="w-1/2 mb-8">
     </div>
     <script src="loginjs"></script>
     <script>

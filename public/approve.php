@@ -254,27 +254,28 @@ $rows = $pdo->query($sql)->fetchAll();
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.php">
-            <img src="assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <?php require_once(__DIR__ . "/../src/helpers.php"); ?>
+        <a class="navbar-brand" href="<?= url('/home') ?>">
+            <img src="<?= asset('images/logo.png') ?>" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="index.php">Home</a>
+                <a class="nav-link active" href="<?= url('/home') ?>">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="modules/users/index.php">User</a>
+                        <a class="nav-link" href="<?= url('/users') ?>">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="modules/products/index.php">Peripheral</a>
+                        <a class="nav-link" href="<?= url('/products') ?>">Peripheral</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="modules/records/index.php">Records</a>
+                        <a class="nav-link" href="<?= url('/records') ?>">Records</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="approve.php">Approve Repair</a>
+                        <a class="nav-link" href="<?= url('/approve') ?>">Approve Repair</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
@@ -285,20 +286,20 @@ $rows = $pdo->query($sql)->fetchAll();
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="showdata.php">Show Data</a>
+                        <a class="nav-link" href="<?= url('/showdata') ?>">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="<?= url('/apply-fix') ?>">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="modules/auth/logout.php">Logout</a>
+                    <a class="nav-link" href="<?= url('/logout') ?>">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="modules/auth/login.php">Login</a>
+                    <a class="nav-link" href="<?= url('/login') ?>">Login</a>
                 </li>
             <?php endif; ?>
         </ul>

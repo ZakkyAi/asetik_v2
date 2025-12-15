@@ -15,13 +15,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
-// Check if ID is set
-if (!isset($_GET['id'])) {
-    header('Location: index.php');
+// Check if ID is set (from route parameter)
+if (!isset($id)) {
+    header('Location: ' . url('/users'));
     exit();
 }
 
-$id = intval($_GET['id']);
+$id = intval($id);
 
 // Fetch user data
 // Fetch user data
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         $pdo->prepare($query)->execute($params);
-        header("Location: index.php");
+        header("Location: " . url('/users'));
     } catch (PDOException $e) {
         echo "Error updating record: " . $e->getMessage();
     }
@@ -242,27 +242,28 @@ table, td, th {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../../index.php">
-            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <?php require_once(__DIR__ . "/../../../src/helpers.php"); ?>
+        <a class="navbar-brand" href="<?= url('/home') ?>">
+            <img src="<?= asset('images/logo.png') ?>" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../../index.php">Home</a>
+                <a class="nav-link active" href="<?= url('/home') ?>">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">User</a>
+                        <a class="nav-link" href="<?= url('/users') ?>">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../products/index.php">Peripheral</a>
+                        <a class="nav-link" href="<?= url('/products') ?>">Peripheral</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../records/index.php">Records</a>
+                        <a class="nav-link" href="<?= url('/records') ?>">Records</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Approve Repair</a>
+                        <a class="nav-link" href="<?= url('/approve') ?>">Approve Repair</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
@@ -273,20 +274,20 @@ table, td, th {
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../../showdata.php">Show Data</a>
+                        <a class="nav-link" href="<?= url('/showdata') ?>">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="<?= url('/apply-fix') ?>">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="<?= url('/logout') ?>">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/login.php">Login</a>
+                    <a class="nav-link" href="<?= url('/login') ?>">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -295,45 +296,86 @@ table, td, th {
 
 <!-- Content Section -->
 <div class="content" id="content">
-        <h1>Edit User</h1>
-        <form action="" method="POST" enctype="multipart/form-data">
-            <label for="name">Name:</label>
-            <input type="text" name="name" id="name" value="<?= htmlspecialchars($user['name']) ?>" required style="height: 30px; width: 40%;"><br>
 
-            <label for="age">Age:</label>
-            <input type="number" name="age" id="age" value="<?= htmlspecialchars($user['age']) ?>" style="height: 30px; width: 40%;"><br>
+<h1>Edit User</h1>
+<br>
 
-            <label for="email">Email:</label>
-            <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email']) ?>" required style="height: 30px; width: 40%;"> <br>
+<div style="max-width: 800px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <form action="" method="POST" enctype="multipart/form-data">
+        
+        <div style="margin-bottom: 20px;">
+            <label for="name" style="display: block; font-weight: bold; margin-bottom: 5px;">Name:</label>
+            <input type="text" name="name" id="name" value="<?= htmlspecialchars($user['name']) ?>" required 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
 
-            <label for="divisi">Divisi:</label>
-<input type="text" name="divisi" id="divisi" value="<?= htmlspecialchars($user['divisi']) ?>" style="height: 30px; width: 40%;"><br>
+        <div style="margin-bottom: 20px;">
+            <label for="age" style="display: block; font-weight: bold; margin-bottom: 5px;">Age:</label>
+            <input type="number" name="age" id="age" value="<?= htmlspecialchars($user['age']) ?>" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
 
+        <div style="margin-bottom: 20px;">
+            <label for="email" style="display: block; font-weight: bold; margin-bottom: 5px;">Email:</label>
+            <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email']) ?>" required 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
 
-            <label for="description">Description:</label>
-            <textarea name="description" id="description" style="height: 30px; width: 40%;"><?= htmlspecialchars($user['description']) ?></textarea><br>
+        <div style="margin-bottom: 20px;">
+            <label for="divisi" style="display: block; font-weight: bold; margin-bottom: 5px;">Divisi:</label>
+            <input type="text" name="divisi" id="divisi" value="<?= htmlspecialchars($user['divisi']) ?>" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
 
-            <label for="username">Username:</label>
-            <input type="text" name="username" id="username" value="<?= htmlspecialchars($user['username']) ?>" required style="height: 30px; width: 40%;"><br>
+        <div style="margin-bottom: 20px;">
+            <label for="description" style="display: block; font-weight: bold; margin-bottom: 5px;">Description:</label>
+            <textarea name="description" id="description" 
+                      style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; height: 100px; box-sizing: border-box; resize: vertical;"><?= htmlspecialchars($user['description']) ?></textarea>
+        </div>
 
-            <label for="badge">Badge:</label>
-            <input type="text" name="badge" id="badge" value="<?= htmlspecialchars($user['badge']) ?>" style="height: 30px; width: 40%;"><br>
+        <div style="margin-bottom: 20px;">
+            <label for="username" style="display: block; font-weight: bold; margin-bottom: 5px;">Username:</label>
+            <input type="text" name="username" id="username" value="<?= htmlspecialchars($user['username']) ?>" required 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
 
-            <label for="level">Level:</label>
-            <select name="level" id="level" required>
+        <div style="margin-bottom: 20px;">
+            <label for="badge" style="display: block; font-weight: bold; margin-bottom: 5px;">Badge:</label>
+            <input type="text" name="badge" id="badge" value="<?= htmlspecialchars($user['badge']) ?>" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="level" style="display: block; font-weight: bold; margin-bottom: 5px;">Level:</label>
+            <select name="level" id="level" required 
+                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
                 <option value="admin" <?= $user['level'] === 'admin' ? 'selected' : '' ?>>Admin</option>
                 <option value="normal_user" <?= $user['level'] === 'normal_user' ? 'selected' : '' ?>>Normal User</option>
-            </select><br>
+            </select>
+        </div>
 
-            <label for="photo">Photo:</label>
-            <input type="file" name="photo" id="photo"><br>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Current Photo:</label>
+            <div style="padding: 10px; background: #f8f9fa; border: 2px solid #ddd; border-radius: 4px;">
+                <?= ($user['photo'] ? "<img src='" . url('public/uploads/' . $user['photo']) . "' alt='Photo' style='max-width: 150px; border-radius: 4px;'>" : '<span style="color: #888;">No Photo</span>') ?>
+            </div>
+        </div>
 
-            <button type="submit">Update</button>
+        <div style="margin-bottom: 20px;">
+            <label for="photo" style="display: block; font-weight: bold; margin-bottom: 5px;">Upload New Photo:</label>
+            <input type="file" name="photo" id="photo" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button type="submit" class="btn btn-edit" style="margin-right: 10px;">Update User</button>
+            <a href="<?= url('/users') ?>" class="btn btn-delete">Back</a>
+        </div>
+
     </form>
-               
-    <a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+</div>
 
-    </div>
+</div>
 
 <!-- Bootstrap 5 JavaScript and Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqO4rx0z6FMqU5tq1VqW58RclPb1Hlmh0fJkhDi1ozh4c" crossorigin="anonymous"></script>

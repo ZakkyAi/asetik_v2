@@ -1,130 +1,99 @@
 <?php
 /**
- * Supabase PostgreSQL Connection Test
- * This script tests the connection to your Supabase database
+ * Test MySQL connection
  */
 
-// Load environment variables from .env file
-function loadEnv($path) {
-    if (!file_exists($path)) {
-        return false;
-    }
-    
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) {
-            continue;
-        }
+echo "<h2>Testing MySQL Connection</h2>";
+
+// Load .env
+$host = 'localhost';
+$db   = 'asetik';
+$user = 'root';
+$pass = '';
+$port = '3306';
+
+if (file_exists(__DIR__ . '/../.env')) {
+    $envFile = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($envFile as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
         
-        list($name, $value) = explode('=', $line, 2);
-        $name = trim($name);
+        list($key, $value) = explode('=', $line, 2);
+        $key = trim($key);
         $value = trim($value);
         
-        if (!array_key_exists($name, $_ENV)) {
-            $_ENV[$name] = $value;
-        }
+        if ($key === 'DB_HOST') $host = $value;
+        if ($key === 'DB_NAME') $db = $value;
+        if ($key === 'DB_USER') $user = $value;
+        if ($key === 'DB_PASSWORD') $pass = $value;
+        if ($key === 'DB_PORT') $port = $value;
     }
-    return true;
 }
 
-// Load .env file
-$envLoaded = loadEnv(__DIR__ . '/.env');
+echo "<p><strong>Configuration:</strong></p>";
+echo "<ul>";
+echo "<li>Host: $host</li>";
+echo "<li>Port: $port</li>";
+echo "<li>Database: $db</li>";
+echo "<li>User: $user</li>";
+echo "<li>Password: " . (empty($pass) ? '(empty)' : '(set)') . "</li>";
+echo "</ul>";
 
-// Database configuration - try to load from .env first, fallback to hardcoded values
-$host = $_ENV['DB_HOST'] ?? 'db.jadwfkeagcceroypuqer.supabase.co';
-$port = $_ENV['DB_PORT'] ?? '5432';
-$dbname = $_ENV['DB_NAME'] ?? 'postgres';
-$user = $_ENV['DB_USER'] ?? 'postgres';
-$password = $_ENV['DB_PASSWORD'] ?? '';
-
-// Display connection info (without password)
-echo "=== Supabase Connection Test ===\n\n";
-echo "Environment file: " . ($envLoaded ? "✓ Loaded from .env" : "✗ Not found, using defaults") . "\n";
-echo "Host: $host\n";
-echo "Port: $port\n";
-echo "Database: $dbname\n";
-echo "User: $user\n";
-echo "Password: " . (empty($password) ? "NOT SET" : "***SET***") . "\n";
-echo str_repeat("-", 50) . "\n\n";
-
-// Check if password is set
-if (empty($password)) {
-    echo "ERROR: Please set DB_PASSWORD in your .env file before testing!\n";
-    echo "You can find your password in Supabase Dashboard → Settings → Database → Database Password\n";
-    exit(1);
-}
-
+// Test 1: Connect without database
+echo "<h3>Test 1: Connect to MySQL Server</h3>";
 try {
-    // Create PDO connection string
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
-    
-    echo "Attempting to connect to Supabase...\n\n";
-    
-    // Create PDO instance
-    $pdo = new PDO($dsn, $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
+    $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
+    echo "<p style='color: green;'>✓ Successfully connected to MySQL server!</p>";
     
-    echo "✓ SUCCESS: Connected to Supabase database successfully!\n\n";
+    // Check if database exists
+    echo "<h3>Test 2: Check if database '$db' exists</h3>";
+    $stmt = $pdo->query("SHOW DATABASES LIKE '$db'");
+    $result = $stmt->fetch();
     
-    // Test query - Get PostgreSQL version
-    $stmt = $pdo->query('SELECT version()');
-    $version = $stmt->fetch();
-    echo "PostgreSQL Version:\n" . $version['version'] . "\n\n";
-    
-    // Test query - Get current database
-    $stmt = $pdo->query('SELECT current_database()');
-    $current_db = $stmt->fetch();
-    echo "Current Database: " . $current_db['current_database'] . "\n";
-    
-    // Test query - Get current user
-    $stmt = $pdo->query('SELECT current_user');
-    $current_user = $stmt->fetch();
-    echo "Current User: " . $current_user['current_user'] . "\n\n";
-    
-    // List all tables in the database
-    $stmt = $pdo->query("
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        ORDER BY table_name
-    ");
-    $tables = $stmt->fetchAll();
-    
-    echo "Tables in Database:\n";
-    if (count($tables) > 0) {
-        foreach ($tables as $table) {
-            echo "  - " . $table['table_name'] . "\n";
+    if ($result) {
+        echo "<p style='color: green;'>✓ Database '$db' exists!</p>";
+        
+        // Test 3: Connect to the database
+        echo "<h3>Test 3: Connect to database '$db'</h3>";
+        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
+        echo "<p style='color: green;'>✓ Successfully connected to database '$db'!</p>";
+        
+        // Show tables
+        echo "<h3>Test 4: List tables in database</h3>";
+        $stmt = $pdo->query("SHOW TABLES");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (count($tables) > 0) {
+            echo "<p>Found " . count($tables) . " tables:</p>";
+            echo "<ul>";
+            foreach ($tables as $table) {
+                echo "<li>$table</li>";
+            }
+            echo "</ul>";
+        } else {
+            echo "<p style='color: orange;'>⚠ Database is empty (no tables found)</p>";
         }
+        
     } else {
-        echo "  (No tables found in the public schema)\n";
+        echo "<p style='color: red;'>✗ Database '$db' does NOT exist!</p>";
+        echo "<p><strong>Solution:</strong> Create the database by running:</p>";
+        echo "<pre>CREATE DATABASE $db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;</pre>";
+        echo "<p>You can do this in phpMyAdmin or MySQL command line.</p>";
     }
-    
-    // Connection info
-    echo "\n" . str_repeat("-", 50) . "\n";
-    echo "Connection Details:\n";
-    echo "PDO Driver: " . $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) . "\n";
-    echo "Server Info: " . $pdo->getAttribute(PDO::ATTR_SERVER_INFO) . "\n";
-    echo "Connection Status: " . $pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS) . "\n";
-    
-    echo "\n" . str_repeat("=", 50) . "\n";
-    echo "✓ All tests passed! Your Supabase connection is working correctly.\n";
-    echo str_repeat("=", 50) . "\n";
     
 } catch (PDOException $e) {
-    echo "✗ CONNECTION FAILED\n\n";
-    echo "Error: " . $e->getMessage() . "\n";
-    echo "Error Code: " . $e->getCode() . "\n\n";
-    
-    echo str_repeat("-", 50) . "\n";
-    echo "Troubleshooting Tips:\n";
-    echo "  - Make sure your password is correct\n";
-    echo "  - Check if your IP address is allowed in Supabase\n";
-    echo "  - Verify that the PostgreSQL PDO extension is installed (pdo_pgsql)\n";
-    echo "  - Ensure SSL/TLS is enabled on your server\n";
-    
-    exit(1);
+    echo "<p style='color: red;'>✗ Connection failed: " . $e->getMessage() . "</p>";
+    echo "<p><strong>Common solutions:</strong></p>";
+    echo "<ul>";
+    echo "<li>Make sure XAMPP MySQL is running</li>";
+    echo "<li>Check that port 3306 is not blocked</li>";
+    echo "<li>Verify username and password are correct</li>";
+    echo "</ul>";
 }
-
+?>

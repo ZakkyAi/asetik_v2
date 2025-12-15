@@ -224,27 +224,28 @@ table, td, th {
 <!-- Sidebar Section -->
 <div class="sidebar" id="sidebar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../../index.php">
-            <img src="../../assets/images/logo.png" alt="Logo" style="width: 150px;">
+        <?php require_once(__DIR__ . "/../../../src/helpers.php"); ?>
+        <a class="navbar-brand" href="<?= url('/home') ?>">
+            <img src="<?= asset('images/logo.png') ?>" alt="Logo" style="width: 150px;">
         </a>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="../../index.php">Home</a>
+                <a class="nav-link active" href="<?= url('/home') ?>">Home</a>
             </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <?php if ($_SESSION['level'] == 'admin'): ?>
                     <!-- Admin-specific menu items -->
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">User</a>
+                        <a class="nav-link" href="<?= url('/users') ?>">User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../products/index.php">Peripheral</a>
+                        <a class="nav-link" href="<?= url('/products') ?>">Peripheral</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../records/index.php">Records</a>
+                        <a class="nav-link" href="<?= url('/records') ?>">Records</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Approve Repair</a>
+                        <a class="nav-link" href="<?= url('/approve') ?>">Approve Repair</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Peripheral Distribution</a>
@@ -255,20 +256,20 @@ table, td, th {
                 <?php elseif ($_SESSION['level'] == 'normal_user'): ?>
                     <!-- Normal user-specific menu item -->
                     <li class="nav-item">
-                        <a class="nav-link" href="../../showdata.php">Show Data</a>
+                        <a class="nav-link" href="<?= url('/showdata') ?>">Show Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../../apply_fix.php">Apply for Repair</a>
+                        <a class="nav-link" href="<?= url('/apply-fix') ?>">Apply for Repair</a>
                     </li>
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="<?= url('/logout') ?>">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/login.php">Login</a>
+                    <a class="nav-link" href="<?= url('/login') ?>">Login</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -277,48 +278,66 @@ table, td, th {
 
 <!-- Content Section -->
 <div class="content" id="content">
-        <h1>Add New User</h1>
-        <form action="" method="POST" enctype="multipart/form-data">
-            <label for="name">Name:</label>
-            <input type="text" name="name" id="name" required style="height: 30px; width: 40%;"><br>
 
-            <label for="age">Age:</label>
-            <input type="number" name="age" id="age" style="height: 30px; width: 40%;"><br>
+<h1>Add New User</h1>
+<br>
+<form action="" method="POST" enctype="multipart/form-data">
+    <table>
+        <tr>
+            <td><label for="name">Name:</label></td>
+            <td><input type="text" name="name" id="name" required style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="age">Age:</label></td>
+            <td><input type="number" name="age" id="age" style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="email">Email:</label></td>
+            <td><input type="email" name="email" id="email" required style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="divisi">Divisi:</label></td>
+            <td><input type="text" name="divisi" id="divisi" style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="description">Description:</label></td>
+            <td><textarea name="description" id="description" style="width: 500px; height: 80px;"></textarea></td>
+        </tr>
+        <tr>
+            <td><label for="username">Username:</label></td>
+            <td><input type="text" name="username" id="username" required style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="password">Password:</label></td>
+            <td><input type="password" name="password" id="password" required style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="badge">Badge:</label></td>
+            <td><input type="text" name="badge" id="badge" style="width: 500px; height: 35px;"></td>
+        </tr>
+        <tr>
+            <td><label for="level">Level:</label></td>
+            <td>
+                <select name="level" id="level" required style="width: 500px; height: 35px;">
+                    <option value="admin">Admin</option>
+                    <option value="normal_user" selected>Normal User</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="photo">Photo:</label></td>
+            <td><input type="file" name="photo" id="photo"></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <button type="submit" class="btn btn-add">Add User</button>
+                <a href="<?= url('/users') ?>" class="btn btn-delete">Back</a>
+            </td>
+        </tr>
+    </table>
+</form>
 
-            <label for="email">Email:</label>
-            <input type="email" name="email" id="email" required style="height: 30px; width: 40%;"><br>
-
-            <label for="divisi">Divisi:</label>
-            <input type="text" name="divisi" id="divisi" style="height: 30px; width: 40%;"><br>
-
-
-            <label for="description">Description:</label>
-            <textarea name="description" id="description" style="height: 30px; width: 40%;"></textarea><br>
-
-            <label for="username">Username:</label>
-            <input type="text" name="username" id="username" required style="height: 30px; width: 40%;"><br>
-
-            <label for="password">Password:</label>
-            <input type="password" name="password" id="password" required style="height: 30px; width: 40%;"><br>
-
-            <label for="badge">Badge:</label>
-            <input type="text" name="badge" id="badge" style="height: 30px; width: 40%;"><br>
-
-            <label for="level">Level:</label>
-            <select name="level" id="level" required>
-                <option value="admin">Admin</option>
-                <option value="normal_user" selected>Normal User</option>
-            </select><br>
-
-            <label for="photo">Photo:</label>
-            <input type="file" name="photo" id="photo"><br>
-
-            <button type="submit">Add User</button>
-        </form>
-
-        <a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
-
-        </div>
+</div>
 
 <!-- Bootstrap 5 JavaScript and Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqO4rx0z6FMqU5tq1VqW58RclPb1Hlmh0fJkhDi1ozh4c" crossorigin="anonymous"></script>

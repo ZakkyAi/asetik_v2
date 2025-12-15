@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="../logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
@@ -242,7 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <input type="submit" value="Add Product" class="btn btn-edit" style="margin-top: 10px;">
 </form>
 <div style="padding-top: 10px;">
-<a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+<?php require_once(__DIR__ . "/../../../src/helpers.php"); ?>
+<a href="<?= url('/products') ?>" class="btn btn-add" style="margin-top: 10px; margin-bottom: 10px;">Back</a>
 
 </div>
  

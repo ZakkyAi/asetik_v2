@@ -15,41 +15,47 @@ if (!isset($_SESSION['user_id'])) {
 }
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
-    $stmt->execute(['id' => $id]);
-    $product = $stmt->fetch();
+// Check if ID is set (from route parameter)
+if (!isset($id)) {
+    header('Location: index.php');
+    exit();
+}
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        // Get form data
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $photo = $_FILES['photo']['name'];
+$stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+$stmt->execute(['id' => $id]);
+$product = $stmt->fetch();
 
-        // If no photo is uploaded, retain the existing one
-        if (!$photo) {
-            $photo = $product['photo'];
-        } else {
-            move_uploaded_file($_FILES['photo']['tmp_name'], "../../uploads/" . $photo);
-        }
+if (!$product) {
+    echo "Product not found.";
+    exit();
+}
 
-        // Update product data in the database
-        // Update product data in the database
-        $query = "UPDATE products SET name=:name, description=:description, photo=:photo WHERE id=:id";
-        try {
-            $pdo->prepare($query)->execute([
-                'name' => $name,
-                'description' => $description,
-                'photo' => $photo,
-                'id' => $id
-            ]);
-        } catch (PDOException $e) {
-            die("Error updating product: " . $e->getMessage());
-        }
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get form data
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $photo = $_FILES['photo']['name'];
 
-        echo "Product updated successfully!";
-        header('Location: index.php');
+    // If no photo is uploaded, retain the existing one
+    if (!$photo) {
+        $photo = $product['photo'];
+    } else {
+        move_uploaded_file($_FILES['photo']['tmp_name'], "../../uploads/" . $photo);
+    }
+
+    // Update product data in the database
+    $query = "UPDATE products SET name=:name, description=:description, photo=:photo WHERE id=:id";
+    try {
+        $pdo->prepare($query)->execute([
+            'name' => $name,
+            'description' => $description,
+            'photo' => $photo,
+            'id' => $id
+        ]);
+        header('Location: ' . url('/products'));
+        exit();
+    } catch (PDOException $e) {
+        die("Error updating product: " . $e->getMessage());
     }
 }
 ?>
@@ -228,7 +234,7 @@ if (isset($_GET['id'])) {
                 <?php endif; ?>
                 <!-- Common Logout link for all logged-in users -->
                 <li class="nav-item">
-                    <a class="nav-link" href="../auth/logout.php">Logout</a>
+                    <a class="nav-link" href="../logout.php">Logout</a>
                 </li>
             <?php else: ?>
                 <!-- Login link for non-logged-in users -->
@@ -249,12 +255,25 @@ if (isset($_GET['id'])) {
         <input type="text" name="name" value="<?php echo $product['name']; ?>" required style="height: 30px; width: 40%;"><br>
         <label>Description:</label><br>
         <textarea name="description" required style="height: 100px; width: 40%;"><?php echo $product['description']; ?></textarea><br>
-        <label>Photo:</label><br>
+        
+        <label>Current Photo:</label><br>
+        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 2px solid #ddd; border-radius: 4px; width: 40%; display: inline-block;">
+            <?php 
+            require_once(__DIR__ . "/../../../src/helpers.php");
+            if ($product['photo']) {
+                echo "<img src='" . url('public/uploads/' . $product['photo']) . "' alt='Product Photo' style='max-width: 200px; border-radius: 4px;'>";
+            } else {
+                echo '<span style="color: #888;">No Photo</span>';
+            }
+            ?>
+        </div><br>
+        
+        <label>Upload New Photo:</label><br>
         <input type="file" name="photo" style="font-size: 16px; margin-bottom: 15px;"> <br>
         <input type="submit" value="Update Product" class="btn btn-edit" style="margin-top: 10px;">
     </form>
     <div style="padding-top: 10px;">
-<a href="index.php" class="btn btn-add" sytle="margin-top: 10px; margin-bottom: 10px ;">back</a>
+<a href="<?= url('/products') ?>" class="btn btn-add" style="margin-top: 10px; margin-bottom: 10px;">Back</a>
 
 </div>
     </div>

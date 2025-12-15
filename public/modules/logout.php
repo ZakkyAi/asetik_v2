@@ -1,7 +1,11 @@
 <?php
-session_start();
+// Start session only if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+require_once(__DIR__ . "/../../src/helpers.php");
+
 session_unset(); // Remove all session variables
 session_destroy(); // Destroy the session
-header("Location: index.php"); // Redirect to login page
-exit();
-?>
+
+redirect('/login'); // Redirect to login page

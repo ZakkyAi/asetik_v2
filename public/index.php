@@ -249,7 +249,7 @@ table, td, th {
  
 <div class="content" id="content">
     <h1 class="text-center mb-4">Selamat Datang, <?php echo htmlspecialchars($user['name']); ?>!</h1>
-    <p class="text-center">Ini adalah dashboard, silakan pilih menu di sidebar.</p>
+    <p class="text-center">Ini adalah dashboardd, silakan pilih menu di sidebar.</p>
 
 
 <table class="table table-bordered">

@@ -9,28 +9,48 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'] ?? '';
     $password_user = $_POST['password_user'] ?? '';
+    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
+    
+    // Get reCAPTCHA keys from environment
+    $recaptcha_secret = getenv('RECAPTCHA_SECRET_KEY');
 
-    if (!empty($username) && !empty($password_user)) {
-        try {
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
-            $stmt->execute(['username' => $username]);
-            $user = $stmt->fetch();
-
-            if ($user && password_verify($password_user, $user['password_user'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['level'] = $user['level'];
-                
-                $success = "Login successful! Redirecting...";
-                header("refresh:2;url=/asetik_v2/public/index.php");
-            } else {
-                $error = "Invalid username or password!";
-            }
-        } catch (PDOException $e) {
-            $error = "Database error: " . $e->getMessage();
-        }
+    // Verify reCAPTCHA
+    if (empty($recaptcha_response)) {
+        $error = "Please complete the reCAPTCHA verification!";
     } else {
-        $error = "Please fill in all fields!";
+        // Verify with Google
+        $verify_url = 'https://www.google.com/recaptcha/api/siteverify';
+        $response = file_get_contents($verify_url . '?' . http_build_query([
+            'secret' => $recaptcha_secret,
+            'response' => $recaptcha_response,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ]));
+        $response_data = json_decode($response);
+
+        if (!$response_data->success) {
+            $error = "reCAPTCHA verification failed. Please try again.";
+        } elseif (!empty($username) && !empty($password_user)) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+                $stmt->execute(['username' => $username]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password_user, $user['password_user'])) {
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['level'] = $user['level'];
+                    
+                    $success = "Login successful! Redirecting...";
+                    header("refresh:2;url=/asetik_v2/public/index.php");
+                } else {
+                    $error = "Invalid username or password!";
+                }
+            } catch (PDOException $e) {
+                $error = "Database error: " . $e->getMessage();
+            }
+        } else {
+            $error = "Please fill in all fields!";
+        }
     }
 }
 ?>
@@ -41,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Asetik</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="flex h-screen bg-gray-100">
     <div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white relative">
@@ -86,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </svg>
                 </button>
             </div>
+            
+            <!-- reCAPTCHA widget -->
+            <div class="mb-4 flex justify-center">
+                <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars(getenv('RECAPTCHA_SITE_KEY')); ?>"></div>
+            </div>
+            
             <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
                 Login
             </button>

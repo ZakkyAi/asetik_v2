@@ -1,6 +1,8 @@
 <?php
 // Direct login access - bypasses redirects
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 require_once(__DIR__ . "/src/config/dbConnection.php");
 
 $error = '';
@@ -35,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->execute(['username' => $username]);
                 $user = $stmt->fetch();
 
-                if ($user && password_verify($password_user, $user['password_user'])) {
+                if ($user && isset($user['password_user']) && password_verify($password_user, $user['password_user'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['level'] = $user['level'];
@@ -80,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         <?php endif; ?>
         
-        <form action="login.php" method="POST" class="w-1/2">
+        <form action="" method="POST" class="w-1/2">
             <div class="mb-4 flex items-center border border-gray-300 rounded px-3 py-2">
                 <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

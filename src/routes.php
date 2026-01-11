@@ -49,8 +49,8 @@ $router->get('/test-all-routes', __DIR__ . '/../test-all-routes.php');
 
 // Guest routes (only for non-authenticated users)
 $router->group([GuestMiddleware::class], function($router) {
-    $router->get('/login', __DIR__ . '/../public/modules/login.php');
-    $router->post('/login', __DIR__ . '/../public/modules/login.php');
+    $router->get('/login', __DIR__ . '/../login.php');
+    $router->post('/login', __DIR__ . '/../login.php');
 });
 
 // Authenticated routes

@@ -51,15 +51,13 @@ $recordStmt = $pdo->prepare($recordQuery);
 $recordStmt->execute(['userId' => $userId]);
 $records = $recordStmt->fetchAll();
 
-// Handle Mark as Broken action (PHP logic)
 // Handle Mark as Broken action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_as_broken'])) {
     $recordId = $_POST['record_id'];
 
     // Update the status to 'broken' in the database
-    // Update the status to 'broken' in the database
-    $updateStmt = $pdo->prepare("UPDATE records SET status = 'broken' WHERE id_records = :id AND status = 'good'");
-    $updateStmt->execute(['id' => $recordId]);
+    $updateStmt = $pdo->prepare("UPDATE records SET status = 'broken' WHERE id_records = :id_records AND status = 'good'");
+    $updateStmt->execute(['id_records' => $recordId]);
 
     // Refresh the page after action
     header("Location: " . $_SERVER['PHP_SELF']);

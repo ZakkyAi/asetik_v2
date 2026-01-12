@@ -5,13 +5,14 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is not logged in and destroy the session
-if (!isset($_SESSION['user_id'])) {
-    session_destroy();
-    // Redirect to login page (optional)
-    header('Location: ../auth/login.php');
-    exit();  // Make sure to stop the script after redirection
+// Load helpers first
+require_once(__DIR__ . "/../../../src/helpers.php");
+
+// Check if user is not logged in
+if (!isset($_SESSION['user_id']) || $_SESSION['level'] != 'admin') {
+    redirect('/login');
 }
+
 // Include the database connection file
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
@@ -23,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Move the uploaded photo to the server folder
     if ($photo) {
-        move_uploaded_file($_FILES['photo']['tmp_name'], "../../uploads/" . $photo);
+        $uploadPath = __DIR__ . "/../../uploads/" . $photo;
+        move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath);
     }
 
     // Insert the data into the database
@@ -32,12 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         $stmt = $pdo->prepare($query);
         $stmt->execute(['name' => $name, 'photo' => $photo, 'description' => $description]);
+        echo "<script>
+                alert('Product added successfully!');
+                window.location.href = '" . url('/products') . "';
+              </script>";
+        exit();
     } catch (PDOException $e) {
-        die("Error adding product: " . $e->getMessage());
+        echo "<script>
+                alert('Error adding product: " . addslashes($e->getMessage()) . "');
+                window.location.href = '" . url('/products/add') . "';
+              </script>";
+        exit();
     }
-
-    echo "Product added successfully!";
-    header("Location: index.php");
 }
 ?>
 
@@ -232,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
 <h2>Add New Product</h2>
-<form method="post" enctype="multipart/form-data">
+<form method="post" action="<?= url('/products/add') ?>" enctype="multipart/form-data">
     <label>Name:</label><br>
     <input type="text" name="name" required style="height: 30px; width: 40%;"><br>
     <label>Description:</label><br>

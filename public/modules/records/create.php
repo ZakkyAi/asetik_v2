@@ -4,10 +4,12 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// Load helpers first
+require_once(__DIR__ . "/../../../src/helpers.php");
+
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../auth/login.php');
-    exit();
+    redirect('/login');
 }
 
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
@@ -34,7 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'no_inventaris' => $no_inventaris
         ]);
         // Redirect after successful insertion
-        header('Location: index.php');
+        echo "<script>
+                alert('Record added successfully!');
+                window.location.href = '" . url('/records') . "';
+              </script>";
         exit();
     } catch (PDOException $e) {
         $error = "Error adding record: " . $e->getMessage();
@@ -266,7 +271,7 @@ $products = $pdo->query("SELECT id, name, photo FROM products")->fetchAll();
             <p style="color: red;"><?= $error ?></p>
         <?php endif; ?>
 
-        <form method="POST" action="create.php">
+        <form method="POST" action="<?= url('/records/add') ?>">
             <label for="id_users">Select User:</label>
             <select name="id_users" id="id_users" required>
                 <option value="">-- Select User --</option>

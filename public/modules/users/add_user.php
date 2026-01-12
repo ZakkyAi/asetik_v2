@@ -5,13 +5,14 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is not logged in and destroy the session
-if (!isset($_SESSION['user_id'])) {
-    session_destroy();
-    // Redirect to login page (optional)
-    header('Location: ../auth/login.php');
-    exit();  // Make sure to stop the script after redirection
+// Load helpers first
+require_once(__DIR__ . "/../../../src/helpers.php");
+
+// Check if user is not logged in
+if (!isset($_SESSION['user_id']) || $_SESSION['level'] != 'admin') {
+    redirect('/login');
 }
+
 require_once(__DIR__ . "/../../../src/config/dbConnection.php");
 
 // Handle form submission
@@ -30,10 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $photo = null;
     if (!empty($_FILES['photo']['name'])) {
         $photo = $_FILES['photo']['name'];
-        $target = "../../uploads/" . basename($photo);
+        $target = __DIR__ . "/../../uploads/" . basename($photo);
 
         if (!move_uploaded_file($_FILES['photo']['tmp_name'], $target)) {
-            echo "Failed to upload photo.";
+            echo "<script>
+                    alert('Failed to upload photo.');
+                    window.location.href = '" . url('/users/add') . "';
+                  </script>";
             exit();
         }
     }
@@ -56,9 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'level' => $level,
             'divisi' => $divisi
         ]);
-        header("Location: index.php");
+        echo "<script>
+                alert('User added successfully!');
+                window.location.href = '" . url('/users') . "';
+              </script>";
+        exit();
     } catch (PDOException $e) {
-        echo "Error adding user: " . $e->getMessage();
+        echo "<script>
+                alert('Error adding user: " . addslashes($e->getMessage()) . "');
+                window.location.href = '" . url('/users/add') . "';
+              </script>";
+        exit();
     }
 }
 ?>
@@ -281,7 +293,7 @@ table, td, th {
 
 <h1>Add New User</h1>
 <br>
-<form action="" method="POST" enctype="multipart/form-data">
+<form action="<?= url('/users/add') ?>" method="POST" enctype="multipart/form-data">
     <table>
         <tr>
             <td><label for="name">Name:</label></td>
